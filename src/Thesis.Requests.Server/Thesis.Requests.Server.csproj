@@ -31,11 +31,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\thesis-services-common\src\Thesis.Services.Common\Thesis.Services.Common.csproj" />
+      <ProjectReference Include="..\Thesis.Requests.Contracts\Thesis.Requests.Contracts.csproj" />
       <ProjectReference Include="..\Thesis.Requests.Model\Thesis.Requests.Model.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controllers" />
-    </ItemGroup>
-
+    
 </Project>

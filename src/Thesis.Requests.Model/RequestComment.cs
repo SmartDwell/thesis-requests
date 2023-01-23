@@ -28,7 +28,7 @@ public class RequestComment
     /// <summary>
     /// Идентификаторы изображений, прикрепленных к комментарию
     /// </summary>
-    public List<string> Images { get; set; } = new();
+    public List<Guid> Images { get; set; } = new();
 
     /// <summary>
     /// Идентификатор создателя

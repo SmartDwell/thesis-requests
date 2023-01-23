@@ -13,8 +13,8 @@ using Thesis.Requests.Server;
 namespace Thesis.Requests.Server.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    [Migration("20230121132854_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20230122165616_UpdateRequest")]
+    partial class UpdateRequest
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,7 +33,9 @@ namespace Thesis.Requests.Server.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValue(new DateTime(2023, 1, 22, 16, 56, 16, 379, DateTimeKind.Utc).AddTicks(1380));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
@@ -42,9 +44,17 @@ namespace Thesis.Requests.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<List<string>>("Images")
+                    b.Property<List<Guid>>("Images")
                         .IsRequired()
-                        .HasColumnType("text[]");
+                        .HasColumnType("uuid[]");
+
+                    b.Property<List<Guid>>("IncidentPointList")
+                        .IsRequired()
+                        .HasColumnType("uuid[]");
+
+                    b.Property<string>("IncidentPointListAsString")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("Number")
                         .ValueGeneratedOnAdd()
@@ -68,14 +78,16 @@ namespace Thesis.Requests.Server.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValue(new DateTime(2023, 1, 22, 16, 56, 16, 379, DateTimeKind.Utc).AddTicks(2520));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
 
-                    b.Property<List<string>>("Images")
+                    b.Property<List<Guid>>("Images")
                         .IsRequired()
-                        .HasColumnType("text[]");
+                        .HasColumnType("uuid[]");
 
                     b.Property<Guid>("RequestId")
                         .HasColumnType("uuid");
@@ -102,7 +114,9 @@ namespace Thesis.Requests.Server.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValue(new DateTime(2023, 1, 22, 16, 56, 16, 379, DateTimeKind.Utc).AddTicks(2990));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");

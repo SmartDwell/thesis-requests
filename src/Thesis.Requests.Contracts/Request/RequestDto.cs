@@ -1,9 +1,11 @@
-namespace Thesis.Requests.Model;
+using Thesis.Requests.Model;
+
+namespace Thesis.Requests.Contracts.Request;
 
 /// <summary>
-/// Заявка
+/// Модель с информацией по заявке
 /// </summary>
-public class Request
+public class RequestDto
 {
     /// <summary>
     /// Идентификатор
@@ -31,11 +33,6 @@ public class Request
     public List<Guid> Images { get; set; } = new();
 
     /// <summary>
-    /// Идентификатор создателя
-    /// </summary>
-    public Guid CreatorId { get; set; }
-    
-    /// <summary>
     /// Дата создания
     /// </summary>
     public DateTime Created { get; set; }
@@ -44,24 +41,14 @@ public class Request
     /// Список идентификаторов активов до точки инцидента
     /// </summary>
     public List<Guid> IncidentPointList { get; set; } = new();
-
+    
     /// <summary>
     /// Наименование активов до точки инцидента
     /// </summary>
     public string IncidentPointListAsString { get; set; } = string.Empty;
     
     /// <summary>
-    /// Комментарии к заявке
+    /// Актуальный статус заявки
     /// </summary>
-    public virtual ICollection<RequestComment> Comments { get; set; } = new List<RequestComment>();
-    
-    /// <summary>
-    /// Статусы заявки
-    /// </summary>
-    public virtual ICollection<RequestStatus> Statuses { get; set; } = new List<RequestStatus>();
-
-    /// <summary>
-    /// Получить актуальный статус заявки
-    /// </summary>
-    public RequestStates CurrentState => Statuses.OrderBy(status => status.Created).Last().State;
+    public RequestStates CurrentState { get; set; }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Thesis.Requests.Server;
@@ -12,9 +13,11 @@ using Thesis.Requests.Server;
 namespace Thesis.Requests.Server.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20230121170943_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,7 +35,7 @@ namespace Thesis.Requests.Server.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2023, 1, 22, 16, 56, 16, 379, DateTimeKind.Utc).AddTicks(1380));
+                        .HasDefaultValue(new DateTime(2023, 1, 21, 17, 9, 43, 315, DateTimeKind.Utc).AddTicks(1430));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
@@ -45,13 +48,9 @@ namespace Thesis.Requests.Server.Migrations
                         .IsRequired()
                         .HasColumnType("uuid[]");
 
-                    b.Property<List<Guid>>("IncidentPointList")
+                    b.Property<List<Guid>>("IncidentPointTree")
                         .IsRequired()
                         .HasColumnType("uuid[]");
-
-                    b.Property<string>("IncidentPointListAsString")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<int>("Number")
                         .ValueGeneratedOnAdd()
@@ -77,7 +76,7 @@ namespace Thesis.Requests.Server.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2023, 1, 22, 16, 56, 16, 379, DateTimeKind.Utc).AddTicks(2520));
+                        .HasDefaultValue(new DateTime(2023, 1, 21, 17, 9, 43, 315, DateTimeKind.Utc).AddTicks(2510));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
@@ -113,7 +112,7 @@ namespace Thesis.Requests.Server.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValue(new DateTime(2023, 1, 22, 16, 56, 16, 379, DateTimeKind.Utc).AddTicks(2990));
+                        .HasDefaultValue(new DateTime(2023, 1, 21, 17, 9, 43, 315, DateTimeKind.Utc).AddTicks(2950));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
