@@ -6,8 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thesis.Requests.Server", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thesis.Requests.Model", "Thesis.Requests.Model\Thesis.Requests.Model.csproj", "{1F90CA3F-F50F-4D53-A85F-4805A9457AD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thesis.Services.Common", "..\..\thesis-services-common\src\Thesis.Services.Common\Thesis.Services.Common.csproj", "{2A908050-6062-4A58-B8DA-912CD27F386A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Thesis.Requests.Contracts", "Thesis.Requests.Contracts\Thesis.Requests.Contracts.csproj", "{34FB8235-9944-45A0-9C15-5B3CABC5D33B}"
 EndProject
 Global
@@ -24,10 +22,6 @@ Global
 		{1F90CA3F-F50F-4D53-A85F-4805A9457AD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F90CA3F-F50F-4D53-A85F-4805A9457AD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F90CA3F-F50F-4D53-A85F-4805A9457AD8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2A908050-6062-4A58-B8DA-912CD27F386A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2A908050-6062-4A58-B8DA-912CD27F386A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2A908050-6062-4A58-B8DA-912CD27F386A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2A908050-6062-4A58-B8DA-912CD27F386A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{34FB8235-9944-45A0-9C15-5B3CABC5D33B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{34FB8235-9944-45A0-9C15-5B3CABC5D33B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34FB8235-9944-45A0-9C15-5B3CABC5D33B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -36,7 +30,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{B40B289A-6487-4E1A-BF1A-DB29AD715311} = {D4C65C10-426A-4D28-854A-408240C6EDE9}
 		{1F90CA3F-F50F-4D53-A85F-4805A9457AD8} = {D4C65C10-426A-4D28-854A-408240C6EDE9}
-		{2A908050-6062-4A58-B8DA-912CD27F386A} = {D4C65C10-426A-4D28-854A-408240C6EDE9}
 		{34FB8235-9944-45A0-9C15-5B3CABC5D33B} = {D4C65C10-426A-4D28-854A-408240C6EDE9}
 	EndGlobalSection
 EndGlobal

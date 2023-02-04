@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
+        <LangVersion>11.0</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
@@ -26,11 +27,11 @@
         </PackageReference>
         <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
         <PackageReference Include="Npgsql" Version="7.0.1" />
+        <PackageReference Include="Seljmov.AspNet.Commons" Version="1.0.0-alpha" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\thesis-services-common\src\Thesis.Services.Common\Thesis.Services.Common.csproj" />
       <ProjectReference Include="..\Thesis.Requests.Contracts\Thesis.Requests.Contracts.csproj" />
       <ProjectReference Include="..\Thesis.Requests.Model\Thesis.Requests.Model.csproj" />
     </ItemGroup>

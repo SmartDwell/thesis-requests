@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Seljmov.AspNet.Commons.Helpers;
 using Thesis.Requests.Server;
-using Thesis.Services.Common.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 

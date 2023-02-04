@@ -214,6 +214,6 @@ public class RequestsController : ControllerBase
         await _context.RequestStatuses.AddAsync(requestNew);
         await _context.SaveChangesAsync();
 
-        return Ok();
+        return Ok(request.Id);
     }
 }
