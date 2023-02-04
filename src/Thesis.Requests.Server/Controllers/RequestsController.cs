@@ -1,5 +1,8 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Seljmov.AspNet.Commons.Helpers;
 using Thesis.Requests.Contracts.Request;
 using Thesis.Requests.Contracts.RequestComment;
 using Thesis.Requests.Contracts.RequestStatus;
@@ -12,9 +15,11 @@ namespace Thesis.Requests.Server.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class RequestsController : ControllerBase
 {
     private readonly DatabaseContext _context;
+    private readonly JwtReader _jwtReader;
     private readonly ILogger<RequestsController> _logger;
 
     /// <summary>
@@ -22,11 +27,13 @@ public class RequestsController : ControllerBase
     /// </summary>
     /// <param name="context">Контекст базы данных</param>
     /// <param name="logger">Логгер</param>
+    /// <param name="jwtReader">Расшифровщик данных пользователя из JWT</param>
     /// <exception cref="ArgumentNullException">Аргумент не инициализирован</exception>
-    public RequestsController(DatabaseContext context, ILogger<RequestsController> logger)
+    public RequestsController(DatabaseContext context, ILogger<RequestsController> logger, JwtReader jwtReader)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _jwtReader = jwtReader ?? throw new ArgumentNullException(nameof(jwtReader));
     }
 
     /// <summary>
@@ -136,6 +143,9 @@ public class RequestsController : ControllerBase
         if (request is null)
             return NotFound();
 
+        var creatorData = GetJwtClaims(out var claims, out var validTo);
+        var z = claims.Identity.Name;
+        var k = claims.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultNameClaimType);
         var fakeCreatorId = Guid.NewGuid();
         var comment = new RequestComment
         {
@@ -216,4 +226,16 @@ public class RequestsController : ControllerBase
 
         return Ok(request.Id);
     }
+
+    #region Tools
+
+    private bool GetJwtClaims(out ClaimsPrincipal? claims, out DateTime validTo)
+    {
+        string authHeader = Request.Headers["Authorization"];
+        var token = authHeader.Replace("Bearer ", "");
+
+        return _jwtReader.ReadAccessToken(token, out claims, out validTo);
+    }
+
+    #endregion
 }
