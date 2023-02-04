@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Thesis.Requests.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,9 +22,10 @@ namespace Thesis.Requests.Server.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Title = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
-                    Images = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Images = table.Column<List<Guid>>(type: "uuid[]", nullable: false),
                     CreatorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValue: new DateTime(2023, 1, 21, 17, 9, 43, 315, DateTimeKind.Utc).AddTicks(1430)),
+                    IncidentPointTree = table.Column<List<Guid>>(type: "uuid[]", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -38,9 +39,9 @@ namespace Thesis.Requests.Server.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     RequestId = table.Column<Guid>(type: "uuid", nullable: false),
                     Text = table.Column<string>(type: "text", nullable: false),
-                    Images = table.Column<List<string>>(type: "text[]", nullable: false),
+                    Images = table.Column<List<Guid>>(type: "uuid[]", nullable: false),
                     CreatorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValue: new DateTime(2023, 1, 21, 17, 9, 43, 315, DateTimeKind.Utc).AddTicks(2510))
                 },
                 constraints: table =>
                 {
@@ -62,7 +63,7 @@ namespace Thesis.Requests.Server.Migrations
                     State = table.Column<int>(type: "integer", nullable: false),
                     Comment = table.Column<string>(type: "text", nullable: false),
                     CreatorId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValue: new DateTime(2023, 1, 21, 17, 9, 43, 315, DateTimeKind.Utc).AddTicks(2950))
                 },
                 constraints: table =>
                 {
