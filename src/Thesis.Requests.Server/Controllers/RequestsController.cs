@@ -41,9 +41,11 @@ public class RequestsController : ControllerBase
     /// </summary>
     /// <param name="state">Состояние заявки</param>
     /// <response code="200">Список всех заявок</response>
+    /// <response code="401">Токен доступа истек</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RequestDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRequests([FromQuery] RequestStates? state)
     {
@@ -72,9 +74,11 @@ public class RequestsController : ControllerBase
     /// </summary>
     /// <param name="userId">Идентификатор пользователя</param>
     /// <response code="200">Список заявок пользователя</response>
+    /// <response code="401">Токен доступа истек</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpGet("{userId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RequestDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetUserRequests([FromRoute] Guid userId)
     {
@@ -102,9 +106,11 @@ public class RequestsController : ControllerBase
     /// </summary>
     /// <param name="requestId">Идентификатор заявки</param>
     /// <response code="200">Список комментариев к заявке</response>
+    /// <response code="401">Токен доступа истек</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpGet("{requestId:guid}/comments")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RequestCommentDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRequestComments([FromRoute] Guid requestId)
     {
@@ -127,33 +133,35 @@ public class RequestsController : ControllerBase
     /// <param name="commentAddDto">Данные по комментарию</param>
     /// <response code="200">Комментарий к заявке успешно добавлен</response>
     /// <response code="400">Переданны некорректные данные</response>
+    /// <response code="401">Токен доступа истек</response>
     /// <response code="404">Заявка не найдена</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpPost("{requestId:guid}/comments")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddRequestComment([FromRoute] Guid requestId, [FromBody] RequestCommentAddDto commentAddDto)
     {
+        var creatorId = GetAuthUserId();
+        if (creatorId is null)
+            return Unauthorized();
+        
         if (!ModelState.IsValid)
             return BadRequest(commentAddDto);
 
         var request = await _context.Requests.FirstOrDefaultAsync(request => request.Id == requestId);
         if (request is null)
             return NotFound();
-
-        var creatorData = GetJwtClaims(out var claims, out var validTo);
-        var z = claims.Identity.Name;
-        var k = claims.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultNameClaimType);
-        var fakeCreatorId = Guid.NewGuid();
+        
         var comment = new RequestComment
         {
             Id = Guid.NewGuid(),
             RequestId = request.Id,
             Text = commentAddDto.Text,
             Images = commentAddDto.Images,
-            CreatorId = fakeCreatorId,
+            CreatorId = (Guid) creatorId,
         };
 
         await _context.RequestComments.AddAsync(comment);
@@ -166,9 +174,11 @@ public class RequestsController : ControllerBase
     /// </summary>
     /// <param name="requestId">Идентификатор заявки</param>
     /// <response code="200">Список статусов заявки</response>
+    /// <response code="401">Токен доступа истек</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpGet("{requestId:guid}/statuses")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RequestStatusDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRequestStatuses([FromRoute] Guid requestId)
     {
@@ -190,24 +200,29 @@ public class RequestsController : ControllerBase
     /// <param name="requestAddDto">Данные по заявке</param>
     /// <response code="200">Заявка успешно добавлена</response>
     /// <response code="400">Переданны некорректные данные</response>
+    /// <response code="401">Токен доступа истек</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddRequest([FromBody] RequestAddDto requestAddDto)
     {
+        var creatorId = GetAuthUserId();
+        if (creatorId is null)
+            return Unauthorized();
+        
         if (!ModelState.IsValid)
             return BadRequest();
         
-        var fakeCreatorId = Guid.NewGuid();
         var request = new Request
         {
             Id = Guid.NewGuid(),
             Title = requestAddDto.Title,
             Description = requestAddDto.Description,
             Images = requestAddDto.Images,
-            CreatorId = fakeCreatorId,
+            CreatorId = (Guid) creatorId,
             IncidentPointList = requestAddDto.IncidentPointList,
         };
 
@@ -217,7 +232,7 @@ public class RequestsController : ControllerBase
             RequestId = request.Id,
             State = RequestStates.New,
             Comment = "Заявка добавлена",
-            CreatorId = fakeCreatorId,
+            CreatorId = (Guid) creatorId,
         };
         
         await _context.Requests.AddAsync(request);
@@ -228,13 +243,23 @@ public class RequestsController : ControllerBase
     }
 
     #region Tools
-
+    
     private bool GetJwtClaims(out ClaimsPrincipal? claims, out DateTime validTo)
     {
-        string authHeader = Request.Headers["Authorization"];
-        var token = authHeader.Replace("Bearer ", "");
+        string? authHeader = Request.Headers["Authorization"];
+        var token = authHeader?.Replace("Bearer ", "") ?? string.Empty;
 
         return _jwtReader.ReadAccessToken(token, out claims, out validTo);
+    }
+
+    private Guid? GetAuthUserId()
+    {
+        _ = GetJwtClaims(out var claims, out var validTo);
+        var creatorClaimId = claims?.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultIssuer);
+        if (creatorClaimId is null) return null;
+
+        var parsed = Guid.TryParse(creatorClaimId.Value, out var creatorId);
+        return parsed ? creatorId : null;
     }
 
     #endregion
