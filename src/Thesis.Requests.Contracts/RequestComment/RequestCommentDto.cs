@@ -18,7 +18,7 @@ public class RequestCommentDto
     /// <summary>
     /// Имя и фамилия создателя комментария
     /// </summary>
-    public string Creator { get; set; } = string.Empty;
+    public string CreatorName { get; set; } = string.Empty;
     
     /// <summary>
     /// Дата создания

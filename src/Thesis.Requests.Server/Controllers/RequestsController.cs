@@ -120,6 +120,7 @@ public class RequestsController : ControllerBase
             {
                 Text = comment.Text,
                 Images = comment.Images,
+                CreatorName = comment.CreatorName,
                 Created = comment.Created,
             }).ToListAsync();
         
@@ -145,7 +146,8 @@ public class RequestsController : ControllerBase
     public async Task<IActionResult> AddRequestComment([FromRoute] Guid requestId, [FromBody] RequestCommentAddDto commentAddDto)
     {
         var creatorId = GetAuthUserId();
-        if (creatorId is null)
+        var creatorFullname = GetAuthUserFullname();
+        if (creatorId is null || string.IsNullOrEmpty(creatorFullname))
             return Unauthorized();
         
         if (!ModelState.IsValid)
@@ -162,9 +164,55 @@ public class RequestsController : ControllerBase
             Text = commentAddDto.Text,
             Images = commentAddDto.Images,
             CreatorId = (Guid) creatorId,
+            CreatorName = creatorFullname,
         };
 
         await _context.RequestComments.AddAsync(comment);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Добавить статус к заявке
+    /// </summary>
+    /// <param name="requestId">Идентификатор заявки</param>
+    /// <param name="requestStatusAddDto">Данные по статусу</param>
+    /// <response code="200">Статус к заявке успешно добавлен</response>
+    /// <response code="400">Переданны некорректные данные</response>
+    /// <response code="401">Токен доступа истек</response>
+    /// <response code="404">Заявка не найдена</response>
+    /// <response code="500">Ошибка сервера</response>
+    [HttpPost("{requestId:guid}/statuses")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddRequestStatus([FromRoute] Guid requestId, [FromBody] RequestStatusAddDto requestStatusAddDto)
+    {
+        var creatorId = GetAuthUserId();
+        var creatorFullname = GetAuthUserFullname();
+        if (creatorId is null || string.IsNullOrEmpty(creatorFullname))
+            return Unauthorized();
+        
+        if (!ModelState.IsValid)
+            return BadRequest(requestStatusAddDto);
+
+        var request = await _context.Requests.FirstOrDefaultAsync(request => request.Id == requestId);
+        if (request is null)
+            return NotFound();
+        
+        var status = new RequestStatus
+        {
+            Id = Guid.NewGuid(),
+            RequestId = request.Id,
+            State = requestStatusAddDto.State,
+            Comment = requestStatusAddDto.Comment,
+            CreatorId = (Guid) creatorId,
+            CreatorName = creatorFullname,
+        };
+
+        await _context.RequestStatuses.AddAsync(status);
         await _context.SaveChangesAsync();
         return Ok();
     }
@@ -210,7 +258,8 @@ public class RequestsController : ControllerBase
     public async Task<IActionResult> AddRequest([FromBody] RequestAddDto requestAddDto)
     {
         var creatorId = GetAuthUserId();
-        if (creatorId is null)
+        var creatorFullname = GetAuthUserFullname();
+        if (creatorId is null || string.IsNullOrEmpty(creatorFullname))
             return Unauthorized();
         
         if (!ModelState.IsValid)
@@ -223,7 +272,9 @@ public class RequestsController : ControllerBase
             Description = requestAddDto.Description,
             Images = requestAddDto.Images,
             CreatorId = (Guid) creatorId,
+            CreatorName = creatorFullname,
             IncidentPointList = requestAddDto.IncidentPointList,
+            IncidentPointListAsString = requestAddDto.IncidentPointListAsString,
         };
 
         var requestNew = new RequestStatus
@@ -233,6 +284,7 @@ public class RequestsController : ControllerBase
             State = RequestStates.New,
             Comment = "Заявка добавлена",
             CreatorId = (Guid) creatorId,
+            CreatorName = creatorFullname,
         };
         
         await _context.Requests.AddAsync(request);
@@ -242,7 +294,7 @@ public class RequestsController : ControllerBase
         return Ok(request.Id);
     }
 
-    #region Tools
+    #region Claims
     
     private bool GetJwtClaims(out ClaimsPrincipal? claims, out DateTime validTo)
     {
@@ -260,6 +312,13 @@ public class RequestsController : ControllerBase
 
         var parsed = Guid.TryParse(creatorClaimId.Value, out var creatorId);
         return parsed ? creatorId : null;
+    }
+    
+    private string? GetAuthUserFullname()
+    {
+        _ = GetJwtClaims(out var claims, out var validTo);
+        var creatorFullname = claims?.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultNameClaimType);
+        return creatorFullname?.Value;
     }
 
     #endregion

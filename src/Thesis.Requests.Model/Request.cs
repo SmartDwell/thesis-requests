@@ -34,6 +34,11 @@ public class Request
     /// Идентификатор создателя
     /// </summary>
     public Guid CreatorId { get; set; }
+
+    /// <summary>
+    /// Имя создателя
+    /// </summary>
+    public string CreatorName { get; set; } = string.Empty;
     
     /// <summary>
     /// Дата создания
