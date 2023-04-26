@@ -36,6 +36,8 @@ public class RequestsController : ControllerBase
         _jwtReader = jwtReader ?? throw new ArgumentNullException(nameof(jwtReader));
     }
 
+    #region Request
+
     /// <summary>
     /// Получить заявки
     /// </summary>
@@ -102,6 +104,61 @@ public class RequestsController : ControllerBase
     }
     
     /// <summary>
+    /// Добавить заявку
+    /// </summary>
+    /// <param name="requestAddDto">Данные по заявке</param>
+    /// <response code="200">Заявка успешно добавлена</response>
+    /// <response code="400">Переданны некорректные данные</response>
+    /// <response code="401">Токен доступа истек</response>
+    /// <response code="500">Ошибка сервера</response>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddRequest([FromBody] RequestAddDto requestAddDto)
+    {
+        var creatorInfo = GetAuthUserInfo();
+        if (creatorInfo is null)
+            return Unauthorized();
+        
+        if (!ModelState.IsValid)
+            return BadRequest();
+        
+        var request = new Request
+        {
+            Id = Guid.NewGuid(),
+            Title = requestAddDto.Title,
+            Description = requestAddDto.Description,
+            Images = requestAddDto.Images,
+            CreatorId = creatorInfo.GuidId,
+            CreatorName = creatorInfo.FullName,
+            IncidentPointList = requestAddDto.IncidentPointList,
+            IncidentPointListAsString = requestAddDto.IncidentPointListAsString,
+        };
+
+        var requestNew = new RequestStatus
+        {
+            Id = Guid.NewGuid(),
+            RequestId = request.Id,
+            State = RequestStates.New,
+            Comment = "Заявка добавлена",
+            CreatorId = creatorInfo.GuidId,
+            CreatorName = creatorInfo.FullName,
+        };
+        
+        await _context.Requests.AddAsync(request);
+        await _context.RequestStatuses.AddAsync(requestNew);
+        await _context.SaveChangesAsync();
+
+        return Ok(request.Id);
+    }
+
+    #endregion
+
+    #region RequestComment
+
+    /// <summary>
     /// Получить комментарии к заявке
     /// </summary>
     /// <param name="requestId">Идентификатор заявки</param>
@@ -145,9 +202,8 @@ public class RequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddRequestComment([FromRoute] Guid requestId, [FromBody] RequestCommentAddDto commentAddDto)
     {
-        var creatorId = GetAuthUserId();
-        var creatorFullname = GetAuthUserFullname();
-        if (creatorId is null || string.IsNullOrEmpty(creatorFullname))
+        var creatorInfo = GetAuthUserInfo();
+        if (creatorInfo is null)
             return Unauthorized();
         
         if (!ModelState.IsValid)
@@ -163,60 +219,19 @@ public class RequestsController : ControllerBase
             RequestId = request.Id,
             Text = commentAddDto.Text,
             Images = commentAddDto.Images,
-            CreatorId = (Guid) creatorId,
-            CreatorName = creatorFullname,
+            CreatorId = creatorInfo.GuidId,
+            CreatorName = creatorInfo.FullName,
         };
 
         await _context.RequestComments.AddAsync(comment);
         await _context.SaveChangesAsync();
         return Ok();
     }
-    
-    /// <summary>
-    /// Добавить статус к заявке
-    /// </summary>
-    /// <param name="requestId">Идентификатор заявки</param>
-    /// <param name="requestStatusAddDto">Данные по статусу</param>
-    /// <response code="200">Статус к заявке успешно добавлен</response>
-    /// <response code="400">Переданны некорректные данные</response>
-    /// <response code="401">Токен доступа истек</response>
-    /// <response code="404">Заявка не найдена</response>
-    /// <response code="500">Ошибка сервера</response>
-    [HttpPost("{requestId:guid}/statuses")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> AddRequestStatus([FromRoute] Guid requestId, [FromBody] RequestStatusAddDto requestStatusAddDto)
-    {
-        var creatorId = GetAuthUserId();
-        var creatorFullname = GetAuthUserFullname();
-        if (creatorId is null || string.IsNullOrEmpty(creatorFullname))
-            return Unauthorized();
-        
-        if (!ModelState.IsValid)
-            return BadRequest(requestStatusAddDto);
 
-        var request = await _context.Requests.FirstOrDefaultAsync(request => request.Id == requestId);
-        if (request is null)
-            return NotFound();
-        
-        var status = new RequestStatus
-        {
-            Id = Guid.NewGuid(),
-            RequestId = request.Id,
-            State = requestStatusAddDto.State,
-            Comment = requestStatusAddDto.Comment,
-            CreatorId = (Guid) creatorId,
-            CreatorName = creatorFullname,
-        };
+    #endregion
 
-        await _context.RequestStatuses.AddAsync(status);
-        await _context.SaveChangesAsync();
-        return Ok();
-    }
-    
+    #region RequestStatus
+
     /// <summary>
     /// Получить статусы (историю) заявки
     /// </summary>
@@ -241,84 +256,77 @@ public class RequestsController : ControllerBase
         
         return Ok(statuses);
     }
-
+    
     /// <summary>
-    /// Добавить заявку
+    /// Добавить статус к заявке
     /// </summary>
-    /// <param name="requestAddDto">Данные по заявке</param>
-    /// <response code="200">Заявка успешно добавлена</response>
+    /// <param name="requestId">Идентификатор заявки</param>
+    /// <param name="requestStatusAddDto">Данные по статусу</param>
+    /// <response code="200">Статус к заявке успешно добавлен</response>
     /// <response code="400">Переданны некорректные данные</response>
     /// <response code="401">Токен доступа истек</response>
+    /// <response code="404">Заявка не найдена</response>
     /// <response code="500">Ошибка сервера</response>
-    [HttpPost]
+    [HttpPost("{requestId:guid}/statuses")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> AddRequest([FromBody] RequestAddDto requestAddDto)
+    public async Task<IActionResult> AddRequestStatus([FromRoute] Guid requestId, [FromBody] RequestStatusAddDto requestStatusAddDto)
     {
-        var creatorId = GetAuthUserId();
-        var creatorFullname = GetAuthUserFullname();
-        if (creatorId is null || string.IsNullOrEmpty(creatorFullname))
+        var creatorInfo = GetAuthUserInfo();
+        if (creatorInfo is null)
             return Unauthorized();
         
         if (!ModelState.IsValid)
-            return BadRequest();
-        
-        var request = new Request
-        {
-            Id = Guid.NewGuid(),
-            Title = requestAddDto.Title,
-            Description = requestAddDto.Description,
-            Images = requestAddDto.Images,
-            CreatorId = (Guid) creatorId,
-            CreatorName = creatorFullname,
-            IncidentPointList = requestAddDto.IncidentPointList,
-            IncidentPointListAsString = requestAddDto.IncidentPointListAsString,
-        };
+            return BadRequest(requestStatusAddDto);
 
-        var requestNew = new RequestStatus
+        var request = await _context.Requests.FirstOrDefaultAsync(request => request.Id == requestId);
+        if (request is null)
+            return NotFound();
+        
+        var status = new RequestStatus
         {
             Id = Guid.NewGuid(),
             RequestId = request.Id,
-            State = RequestStates.New,
-            Comment = "Заявка добавлена",
-            CreatorId = (Guid) creatorId,
-            CreatorName = creatorFullname,
+            State = requestStatusAddDto.State,
+            Comment = requestStatusAddDto.Comment,
+            CreatorId = creatorInfo.GuidId,
+            CreatorName = creatorInfo.FullName,
         };
-        
-        await _context.Requests.AddAsync(request);
-        await _context.RequestStatuses.AddAsync(requestNew);
-        await _context.SaveChangesAsync();
 
-        return Ok(request.Id);
+        await _context.RequestStatuses.AddAsync(status);
+        await _context.SaveChangesAsync();
+        return Ok();
     }
+
+    #endregion
 
     #region Claims
     
-    private bool GetJwtClaims(out ClaimsPrincipal? claims, out DateTime validTo)
+    private AuthUserInfo? GetAuthUserInfo()
     {
         string? authHeader = Request.Headers["Authorization"];
-        var token = authHeader?.Replace("Bearer ", "") ?? string.Empty;
+        var token = authHeader?.Replace("Bearer ", "") ?? throw new ArgumentNullException($"Bearer token not found");
 
-        return _jwtReader.ReadAccessToken(token, out claims, out validTo);
+        _ = _jwtReader.ReadAccessToken(token, out var claims, out var validTo);
+        if (claims is null) return null;
+
+        var userInfo = new AuthUserInfo(
+            Id: claims.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultIssuer)?.Value ?? throw new ArgumentNullException($"User's id from bearer token not found"),
+            FullName: claims.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultNameClaimType)?.Value ?? throw new ArgumentNullException($"User's fullname from bearer token not found"),
+            Role: claims.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultRoleClaimType)?.Value ?? throw new ArgumentNullException($"User's role from bearer token not found"),
+            Email: claims.Claims.FirstOrDefault(a => a.Type == ClaimTypes.Email)?.Value ?? throw new ArgumentNullException($"User's email from bearer token not found"),
+            Phone: claims.Claims.FirstOrDefault(a => a.Type == ClaimTypes.MobilePhone)?.Value ?? throw new ArgumentNullException($"User's phone from bearer token not found")
+        );
+
+        return userInfo;
     }
 
-    private Guid? GetAuthUserId()
+    private record AuthUserInfo(string Id, string FullName, string Role, string Email, string Phone)
     {
-        _ = GetJwtClaims(out var claims, out var validTo);
-        var creatorClaimId = claims?.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultIssuer);
-        if (creatorClaimId is null) return null;
-
-        var parsed = Guid.TryParse(creatorClaimId.Value, out var creatorId);
-        return parsed ? creatorId : null;
-    }
-    
-    private string? GetAuthUserFullname()
-    {
-        _ = GetJwtClaims(out var claims, out var validTo);
-        var creatorFullname = claims?.Claims.FirstOrDefault(a => a.Type == ClaimsIdentity.DefaultNameClaimType);
-        return creatorFullname?.Value;
+        public Guid GuidId => Guid.TryParse(Id, out var guidId) ? guidId : throw new ArgumentNullException();
     }
 
     #endregion
