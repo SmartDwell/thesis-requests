@@ -29,11 +29,11 @@ public class RequestsController : ControllerBase
     /// <param name="logger">Логгер</param>
     /// <param name="jwtReader">Расшифровщик данных пользователя из JWT</param>
     /// <exception cref="ArgumentNullException">Аргумент не инициализирован</exception>
-    public RequestsController(DatabaseContext context, ILogger<RequestsController> logger, JwtReader jwtReader)
+    public RequestsController(DatabaseContext context, JwtReader jwtReader, ILogger<RequestsController> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _jwtReader = jwtReader ?? throw new ArgumentNullException(nameof(jwtReader));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     #region Request
@@ -68,7 +68,7 @@ public class RequestsController : ControllerBase
         
         return Ok(state is null 
             ? requests 
-            : requests.Where(request => request.CurrentState == state).ToList());
+            : requests.Where(request => request.CurrentState == state));
     }
     
     /// <summary>
@@ -189,13 +189,13 @@ public class RequestsController : ControllerBase
     /// </summary>
     /// <param name="requestId">Идентификатор заявки</param>
     /// <param name="commentAddDto">Данные по комментарию</param>
-    /// <response code="200">Комментарий к заявке успешно добавлен</response>
+    /// <response code="204">Комментарий к заявке успешно добавлен</response>
     /// <response code="400">Переданны некорректные данные</response>
     /// <response code="401">Токен доступа истек</response>
     /// <response code="404">Заявка не найдена</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpPost("{requestId:guid}/comments")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -225,7 +225,7 @@ public class RequestsController : ControllerBase
 
         await _context.RequestComments.AddAsync(comment);
         await _context.SaveChangesAsync();
-        return Ok();
+        return NoContent();
     }
 
     #endregion
@@ -262,16 +262,18 @@ public class RequestsController : ControllerBase
     /// </summary>
     /// <param name="requestId">Идентификатор заявки</param>
     /// <param name="requestStatusAddDto">Данные по статусу</param>
-    /// <response code="200">Статус к заявке успешно добавлен</response>
+    /// <response code="204">Статус к заявке успешно добавлен</response>
     /// <response code="400">Переданны некорректные данные</response>
     /// <response code="401">Токен доступа истек</response>
     /// <response code="404">Заявка не найдена</response>
+    /// <response code="409">Ошибка в статусе заявки</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpPost("{requestId:guid}/statuses")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddRequestStatus([FromRoute] Guid requestId, [FromBody] RequestStatusAddDto requestStatusAddDto)
     {
@@ -282,9 +284,19 @@ public class RequestsController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(requestStatusAddDto);
 
-        var request = await _context.Requests.FirstOrDefaultAsync(request => request.Id == requestId);
+        var request = await _context.Requests
+            .Include(request => request.Statuses)
+            .FirstOrDefaultAsync(request => request.Id == requestId);
         if (request is null)
             return NotFound();
+
+        var requestStatuses = request.Statuses.Select(status => status.State).ToList();
+        if (requestStatuses.Contains(requestStatusAddDto.State))
+            return Conflict("Передан повторный статус!");
+        if (requestStatusAddDto.State is RequestStates.CancelledByResident && requestStatuses.Contains(RequestStates.RejectedByDispatcher))
+            return Conflict("Заявка не может быть отменена жителем, потому что уже была отклонена диспетчером!");
+        if (requestStatusAddDto.State is RequestStates.RejectedByDispatcher && requestStatuses.Contains(RequestStates.CancelledByResident))
+            return Conflict("Заявка не может быть отклонена диспетчером, потому что уже была отменена жителем!");
         
         var status = new RequestStatus
         {
@@ -298,7 +310,7 @@ public class RequestsController : ControllerBase
 
         await _context.RequestStatuses.AddAsync(status);
         await _context.SaveChangesAsync();
-        return Ok();
+        return NoContent();
     }
 
     #endregion
