@@ -290,13 +290,16 @@ public class RequestsController : ControllerBase
         if (request is null)
             return NotFound();
 
-        var requestStatuses = request.Statuses.Select(status => status.State).ToList();
+        var requestStatuses = request.Statuses
+            .OrderBy(status => status.Created)
+            .Select(status => status.State).ToList();
+        var currentState = requestStatuses[^1];
+        if (currentState == RequestStates.CancelledByResident)
+            return Conflict("Невозможно изменить статус заявки, потому что она была отменена жителем!");
+        if (currentState == RequestStates.RejectedByDispatcher)
+            return Conflict("Невозможно изменить статус заявки, потому что она была отклонена диспетчером!");
         if (requestStatuses.Contains(requestStatusAddDto.State))
-            return Conflict("Передан повторный статус!");
-        if (requestStatusAddDto.State is RequestStates.CancelledByResident && requestStatuses.Contains(RequestStates.RejectedByDispatcher))
-            return Conflict("Заявка не может быть отменена жителем, потому что уже была отклонена диспетчером!");
-        if (requestStatusAddDto.State is RequestStates.RejectedByDispatcher && requestStatuses.Contains(RequestStates.CancelledByResident))
-            return Conflict("Заявка не может быть отклонена диспетчером, потому что уже была отменена жителем!");
+            return Conflict("Ошибка! Передан повторный статус!");
         
         var status = new RequestStatus
         {
