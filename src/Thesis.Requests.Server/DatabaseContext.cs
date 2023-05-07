@@ -54,9 +54,11 @@ public sealed class DatabaseContext : DbContext
             entity.Property(e => e.Images).IsRequired();
             entity.Property(e => e.CreatorId).IsRequired();
             entity.Property(e => e.CreatorName).IsRequired();
+            entity.Property(e => e.CreatorContact).IsRequired();
             entity.Property(e => e.Created).IsRequired().HasDefaultValueSql("now()");
             entity.Property(e => e.IncidentPointList).IsRequired();
             entity.Property(e => e.IncidentPointListAsString).IsRequired();
+            entity.Property(e => e.IsEdited).IsRequired().HasDefaultValue(false);
 
             entity.HasMany(e => e.Comments).WithOne(c => c.Request).HasForeignKey(c => c.RequestId);
             entity.HasMany(e => e.Statuses).WithOne(c => c.Request).HasForeignKey(c => c.RequestId);

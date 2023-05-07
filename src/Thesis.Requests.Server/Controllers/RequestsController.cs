@@ -133,6 +133,7 @@ public class RequestsController : ControllerBase
             Images = requestAddDto.Images,
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
+            CreatorContact = $"{creatorInfo.Email}, {creatorInfo.Phone}",
             IncidentPointList = requestAddDto.IncidentPointList,
             IncidentPointListAsString = requestAddDto.IncidentPointListAsString,
         };
@@ -152,6 +153,41 @@ public class RequestsController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(request.Id);
+    }
+    
+    /// <summary>
+    /// Редактировать заявку
+    /// </summary>
+    /// <param name="requestId">Идентификатор заявки</param>
+    /// <param name="requestEditDto">Данные по заявке</param>
+    /// <response code="200">Заявка успешно обновлена</response>
+    /// <response code="400">Переданны некорректные данные</response>
+    /// <response code="401">Токен доступа истек</response>
+    /// <response code="404">Заявка не найдена</response>
+    /// <response code="500">Ошибка сервера</response>
+    [HttpPatch("{requestId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> PatchRequest([FromRoute] Guid requestId, [FromBody] RequestEditDto requestEditDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest();
+
+        var request = await _context.Requests
+            .Include(item => item.Statuses)
+            .FirstOrDefaultAsync(item => item.Id == requestId);
+        if (request is null)
+            return NotFound();
+
+        request.Title = requestEditDto.Title;
+        request.Description = requestEditDto.Description;
+
+        _context.Requests.Update(request);
+        await _context.SaveChangesAsync();
+
+        return Ok(request);
     }
 
     #endregion
