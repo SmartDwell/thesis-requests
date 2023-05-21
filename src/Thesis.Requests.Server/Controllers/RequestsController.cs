@@ -183,6 +183,7 @@ public class RequestsController : ControllerBase
 
         request.Title = requestEditDto.Title;
         request.Description = requestEditDto.Description;
+        request.IsEdited = true;
 
         _context.Requests.Update(request);
         await _context.SaveChangesAsync();
