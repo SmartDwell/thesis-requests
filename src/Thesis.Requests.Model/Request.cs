@@ -34,6 +34,16 @@ public class Request
     /// Идентификатор создателя
     /// </summary>
     public Guid CreatorId { get; set; }
+
+    /// <summary>
+    /// Имя создателя
+    /// </summary>
+    public string CreatorName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Контакты создателя
+    /// </summary>
+    public string CreatorContact { get; set; } = string.Empty;
     
     /// <summary>
     /// Дата создания
@@ -49,6 +59,11 @@ public class Request
     /// Наименование активов до точки инцидента
     /// </summary>
     public string IncidentPointListAsString { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// Признак отредактированности заявки
+    /// </summary>
+    public bool IsEdited { get; set; }
     
     /// <summary>
     /// Комментарии к заявке

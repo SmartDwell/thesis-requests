@@ -53,9 +53,12 @@ public sealed class DatabaseContext : DbContext
             entity.Property(e => e.Description).IsRequired();
             entity.Property(e => e.Images).IsRequired();
             entity.Property(e => e.CreatorId).IsRequired();
-            entity.Property(e => e.Created).IsRequired().HasDefaultValue(DateTime.UtcNow);;
+            entity.Property(e => e.CreatorName).IsRequired();
+            entity.Property(e => e.CreatorContact).IsRequired();
+            entity.Property(e => e.Created).IsRequired().HasDefaultValueSql("now()");
             entity.Property(e => e.IncidentPointList).IsRequired();
             entity.Property(e => e.IncidentPointListAsString).IsRequired();
+            entity.Property(e => e.IsEdited).IsRequired().HasDefaultValue(false);
 
             entity.HasMany(e => e.Comments).WithOne(c => c.Request).HasForeignKey(c => c.RequestId);
             entity.HasMany(e => e.Statuses).WithOne(c => c.Request).HasForeignKey(c => c.RequestId);
@@ -68,7 +71,8 @@ public sealed class DatabaseContext : DbContext
             entity.Property(e => e.Text).IsRequired();
             entity.Property(e => e.Images).IsRequired();
             entity.Property(e => e.CreatorId).IsRequired();
-            entity.Property(e => e.Created).IsRequired().HasDefaultValue(DateTime.UtcNow);;
+            entity.Property(e => e.CreatorName).IsRequired();
+            entity.Property(e => e.Created).IsRequired().HasDefaultValueSql("now()");
 
             entity.HasOne(e => e.Request).WithMany(r => r.Comments).HasForeignKey(r => r.RequestId);
         });
@@ -80,7 +84,8 @@ public sealed class DatabaseContext : DbContext
             entity.Property(e => e.State).IsRequired();
             entity.Property(e => e.Comment).IsRequired();
             entity.Property(e => e.CreatorId).IsRequired();
-            entity.Property(e => e.Created).IsRequired().HasDefaultValue(DateTime.UtcNow);;
+            entity.Property(e => e.CreatorName).IsRequired();
+            entity.Property(e => e.Created).IsRequired().HasDefaultValueSql("now()");
 
             entity.HasOne(e => e.Request).WithMany(r => r.Statuses).HasForeignKey(r => r.RequestId);
         });

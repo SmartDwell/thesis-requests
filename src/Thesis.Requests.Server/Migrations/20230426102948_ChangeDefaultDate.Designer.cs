@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Thesis.Requests.Server;
@@ -12,9 +13,11 @@ using Thesis.Requests.Server;
 namespace Thesis.Requests.Server.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20230426102948_ChangeDefaultDate")]
+    partial class ChangeDefaultDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,10 +36,6 @@ namespace Thesis.Requests.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
-
-                    b.Property<string>("CreatorContact")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
@@ -60,11 +59,6 @@ namespace Thesis.Requests.Server.Migrations
                     b.Property<string>("IncidentPointListAsString")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsEdited")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<int>("Number")
                         .ValueGeneratedOnAdd()

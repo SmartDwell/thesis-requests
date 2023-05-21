@@ -29,4 +29,10 @@ public class RequestAddDto
     /// </summary>
     [Required(ErrorMessage = "Необходимо указать местоположение инцидента")]
     public List<Guid> IncidentPointList { get; set; } = new();
+
+    /// <summary>
+    /// Наименование активов до точки инцидента
+    /// </summary>
+    [Required(ErrorMessage = "Необходимо указать наименование местоположения инцидента")]
+    public string IncidentPointListAsString { get; set; } = string.Empty;
 }

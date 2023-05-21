@@ -36,6 +36,11 @@ public class RequestComment
     public Guid CreatorId { get; set; }
     
     /// <summary>
+    /// Имя создателя
+    /// </summary>
+    public string CreatorName { get; set; } = string.Empty;
+    
+    /// <summary>
     /// Дата создания
     /// </summary>
     public DateTime Created { get; set; }

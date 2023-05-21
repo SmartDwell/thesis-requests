@@ -18,16 +18,4 @@ builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(conn
 
 var app = builder.BuildWebApplication();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
 app.Run();

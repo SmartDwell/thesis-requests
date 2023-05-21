@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Thesis.Requests.Server;
@@ -12,9 +13,11 @@ using Thesis.Requests.Server;
 namespace Thesis.Requests.Server.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20230228091117_AddCreatorName")]
+    partial class AddCreatorName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,11 +35,7 @@ namespace Thesis.Requests.Server.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("CreatorContact")
-                        .IsRequired()
-                        .HasColumnType("text");
+                        .HasDefaultValue(new DateTime(2023, 2, 28, 9, 11, 16, 964, DateTimeKind.Utc).AddTicks(7400));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
@@ -60,11 +59,6 @@ namespace Thesis.Requests.Server.Migrations
                     b.Property<string>("IncidentPointListAsString")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<bool>("IsEdited")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<int>("Number")
                         .ValueGeneratedOnAdd()
@@ -90,7 +84,7 @@ namespace Thesis.Requests.Server.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
+                        .HasDefaultValue(new DateTime(2023, 2, 28, 9, 11, 16, 964, DateTimeKind.Utc).AddTicks(8580));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
@@ -130,7 +124,7 @@ namespace Thesis.Requests.Server.Migrations
                     b.Property<DateTime>("Created")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
+                        .HasDefaultValue(new DateTime(2023, 2, 28, 9, 11, 16, 964, DateTimeKind.Utc).AddTicks(9070));
 
                     b.Property<Guid>("CreatorId")
                         .HasColumnType("uuid");
