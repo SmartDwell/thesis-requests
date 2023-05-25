@@ -7,6 +7,7 @@ using Thesis.Requests.Contracts.Request;
 using Thesis.Requests.Contracts.RequestComment;
 using Thesis.Requests.Contracts.RequestStatus;
 using Thesis.Requests.Model;
+using Thesis.Requests.Server.Services;
 
 namespace Thesis.Requests.Server.Controllers;
 
@@ -21,6 +22,7 @@ public class RequestsController : ControllerBase
     private readonly DatabaseContext _context;
     private readonly JwtReader _jwtReader;
     private readonly ILogger<RequestsController> _logger;
+    private readonly OutgoingRabbitService _outgoingRabbitService;
 
     /// <summary>
     /// Контроллер класса <see cref="RequestsController"/>
@@ -28,12 +30,14 @@ public class RequestsController : ControllerBase
     /// <param name="context">Контекст базы данных</param>
     /// <param name="logger">Логгер</param>
     /// <param name="jwtReader">Расшифровщик данных пользователя из JWT</param>
+    /// <param name="outgoingRabbitService">Сервис работы с Rabbit</param>
     /// <exception cref="ArgumentNullException">Аргумент не инициализирован</exception>
-    public RequestsController(DatabaseContext context, JwtReader jwtReader, ILogger<RequestsController> logger)
+    public RequestsController(DatabaseContext context, JwtReader jwtReader, ILogger<RequestsController> logger, OutgoingRabbitService outgoingRabbitService)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _jwtReader = jwtReader ?? throw new ArgumentNullException(nameof(jwtReader));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _outgoingRabbitService = outgoingRabbitService ?? throw new ArgumentNullException(nameof(outgoingRabbitService));
     }
 
     #region Request
@@ -147,7 +151,8 @@ public class RequestsController : ControllerBase
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
         };
-        
+
+        _outgoingRabbitService.PublishNewRequestToBroker(request);
         await _context.Requests.AddAsync(request);
         await _context.RequestStatuses.AddAsync(requestNew);
         await _context.SaveChangesAsync();
@@ -260,6 +265,7 @@ public class RequestsController : ControllerBase
             CreatorName = creatorInfo.FullName,
         };
 
+        _outgoingRabbitService.PublishNewCommentToBroker(comment);
         await _context.RequestComments.AddAsync(comment);
         await _context.SaveChangesAsync();
         return NoContent();
@@ -347,6 +353,9 @@ public class RequestsController : ControllerBase
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
         };
+
+        if (status.State == RequestStates.CancelledByResident)
+            _outgoingRabbitService.PublishNewStatusToBroker(status);
 
         await _context.RequestStatuses.AddAsync(status);
         await _context.SaveChangesAsync();
