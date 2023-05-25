@@ -1,3 +1,4 @@
+using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -135,6 +136,7 @@ public class RequestsController : ControllerBase
             Title = requestAddDto.Title,
             Description = requestAddDto.Description,
             Images = requestAddDto.Images,
+            Created = DateTime.UtcNow,
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
             CreatorContact = $"{creatorInfo.Email}, {creatorInfo.Phone}",
@@ -263,6 +265,7 @@ public class RequestsController : ControllerBase
             Images = commentAddDto.Images,
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
+            Created = DateTime.UtcNow
         };
 
         _outgoingRabbitService.PublishNewCommentToBroker(comment);
@@ -352,6 +355,7 @@ public class RequestsController : ControllerBase
             Comment = requestStatusAddDto.Comment,
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
+            Created = DateTime.UtcNow
         };
 
         if (status.State == RequestStates.CancelledByResident)
