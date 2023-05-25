@@ -45,7 +45,7 @@ public class OutgoingRabbitService
                 request.Created,
                 request.IncidentPointList,
                 request.IncidentPointListAsString,
-                request.CurrentState,
+                CurrentState = RequestStates.New,
             })
         };
 
