@@ -90,6 +90,8 @@ public class IncomingRabbitService
 
             channel.BasicAck(ea.DeliveryTag, false);
         };
+
+		channel.BasicConsume("outgoing_dispatch", false, consumer);
     }
 
     private static void CreateNewComment(DatabaseContext context, IncomingRabbitComment comment, AuthUserInfo user)
