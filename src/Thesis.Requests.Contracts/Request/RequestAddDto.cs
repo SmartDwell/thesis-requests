@@ -25,14 +25,14 @@ public class RequestAddDto
     public List<Guid> Images { get; set; } = new();
     
     /// <summary>
-    /// Список идентификаторов активов до точки инцидента
+    /// Идентификатор точки инцидента
     /// </summary>
     [Required(ErrorMessage = "Необходимо указать местоположение инцидента")]
-    public List<Guid> IncidentPointList { get; set; } = new();
+    public Guid IncidentPointId { get; set; } = new();
 
     /// <summary>
-    /// Наименование активов до точки инцидента
+    /// Полное имя точки инцидента
     /// </summary>
     [Required(ErrorMessage = "Необходимо указать наименование местоположения инцидента")]
-    public string IncidentPointListAsString { get; set; } = string.Empty;
+    public string IncidentPointFullName { get; set; } = string.Empty;
 }

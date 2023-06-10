@@ -61,8 +61,8 @@ public class RequestsController : ControllerBase
                 Description = request.Description,
                 Images = request.Images,
                 Created = request.Created,
-                IncidentPointList = request.IncidentPointList,
-                IncidentPointListAsString = request.IncidentPointListAsString,
+                IncidentPointId = request.IncidentPointId,
+                IncidentPointFullName = request.IncidentPointFullName,
                 CurrentState = request.CurrentState,
             }).ToListAsync();
         
@@ -95,8 +95,8 @@ public class RequestsController : ControllerBase
                 Description = request.Description,
                 Images = request.Images,
                 Created = request.Created,
-                IncidentPointList = request.IncidentPointList,
-                IncidentPointListAsString = request.IncidentPointListAsString,
+                IncidentPointId = request.IncidentPointId,
+                IncidentPointFullName = request.IncidentPointFullName,
                 CurrentState = request.CurrentState,
             }).ToListAsync();
 
@@ -134,8 +134,8 @@ public class RequestsController : ControllerBase
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
             CreatorContact = $"{creatorInfo.Email}, {creatorInfo.Phone}",
-            IncidentPointList = requestAddDto.IncidentPointList,
-            IncidentPointListAsString = requestAddDto.IncidentPointListAsString,
+            IncidentPointId = requestAddDto.IncidentPointId,
+            IncidentPointFullName = requestAddDto.IncidentPointFullName,
         };
 
         var requestNew = new RequestStatus
