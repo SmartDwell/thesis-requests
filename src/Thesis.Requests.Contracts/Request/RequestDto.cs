@@ -38,14 +38,14 @@ public class RequestDto
     public DateTime Created { get; set; }
 
     /// <summary>
-    /// Список идентификаторов активов до точки инцидента
+    /// Идентификатор точки инцидента
     /// </summary>
-    public List<Guid> IncidentPointList { get; set; } = new();
-    
+    public Guid IncidentPointId { get; set; } = new();
+
     /// <summary>
-    /// Наименование активов до точки инцидента
+    /// Полное имя точки инцидента
     /// </summary>
-    public string IncidentPointListAsString { get; set; } = string.Empty;
+    public string IncidentPointFullName { get; set; } = string.Empty;
     
     /// <summary>
     /// Актуальный статус заявки

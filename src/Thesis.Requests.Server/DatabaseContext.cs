@@ -56,8 +56,8 @@ public sealed class DatabaseContext : DbContext
             entity.Property(e => e.CreatorName).IsRequired();
             entity.Property(e => e.CreatorContact).IsRequired();
             entity.Property(e => e.Created).IsRequired().HasDefaultValueSql("now()");
-            entity.Property(e => e.IncidentPointList).IsRequired();
-            entity.Property(e => e.IncidentPointListAsString).IsRequired();
+            entity.Property(e => e.IncidentPointId).IsRequired();
+            entity.Property(e => e.IncidentPointFullName).IsRequired();
             entity.Property(e => e.IsEdited).IsRequired().HasDefaultValue(false);
 
             entity.HasMany(e => e.Comments).WithOne(c => c.Request).HasForeignKey(c => c.RequestId);
@@ -82,7 +82,7 @@ public sealed class DatabaseContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.RequestId).IsRequired();
             entity.Property(e => e.State).IsRequired();
-            entity.Property(e => e.Comment).IsRequired();
+            entity.Property(e => e.Comment).IsRequired(false);
             entity.Property(e => e.CreatorId).IsRequired();
             entity.Property(e => e.CreatorName).IsRequired();
             entity.Property(e => e.Created).IsRequired().HasDefaultValueSql("now()");
