@@ -43,8 +43,8 @@ public class OutgoingRabbitService
                 request.Description,
                 request.Images,
                 request.Created,
-                request.IncidentPointList,
-                request.IncidentPointListAsString
+                request.IncidentPointId,
+                request.IncidentPointFullName
             })
         };
 
