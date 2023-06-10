@@ -6,6 +6,7 @@ using Seljmov.AspNet.Commons.Helpers;
 using Thesis.Requests.Contracts.Request;
 using Thesis.Requests.Contracts.RequestComment;
 using Thesis.Requests.Contracts.RequestStatus;
+using Thesis.Requests.Contracts.Search;
 using Thesis.Requests.Model;
 
 namespace Thesis.Requests.Server.Controllers;
@@ -18,6 +19,7 @@ namespace Thesis.Requests.Server.Controllers;
 [Authorize]
 public class RequestsController : ControllerBase
 {
+    private const double MinimalSearchScore = 0.6;
     private readonly DatabaseContext _context;
     private readonly JwtReader _jwtReader;
     private readonly ILogger<RequestsController> _logger;
@@ -355,6 +357,31 @@ public class RequestsController : ControllerBase
 
     #endregion
 
+    #region Extensions
+
+    /// <summary>
+    /// Получить список заявок, которые похожи на переданную строку поиска
+    /// </summary>
+    /// <param name="search">Строка поиска</param>
+    [HttpGet]
+    public async Task<IActionResult> GetSimilars([FromQuery] string search)
+    {
+        var similars = await _context.Requests
+            .Select(req => new SearchResultDto
+            {
+                Id = req.Id,
+                Name = $"{req.Title} {req.Description}",
+            })
+            .OrderByDescending(dto => dto.Score(search))
+            .Where(dto => dto.Score(search) > MinimalSearchScore)
+            .Take(3)
+            .ToListAsync();
+        
+        return Ok(similars);
+    }
+
+    #endregion
+    
     #region Claims
     
     private AuthUserInfo? GetAuthUserInfo()
