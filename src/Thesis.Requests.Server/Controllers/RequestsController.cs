@@ -105,6 +105,7 @@ public class RequestsController : ControllerBase
                 Created = request.Created,
                 IncidentPointId = request.IncidentPointId,
                 IncidentPointFullName = request.IncidentPointFullName,
+                IsEdited = request.IsEdited,
                 CurrentState = request.CurrentState,
             }).ToListAsync();
 
