@@ -376,7 +376,13 @@ public class RequestsController : ControllerBase
     /// Получить список заявок, которые похожи на переданную строку поиска
     /// </summary>
     /// <param name="search">Строка поиска</param>
+    /// <response code="200">Список заявок, которые похожи на переданную строку поиска</response>
+    /// <response code="401">Токен доступа истек</response>
+    /// <response code="500">Ошибка сервера</response>
     [HttpGet("similars")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<SearchResultDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetSimilars([FromQuery] string search)
     {
         var similars = await _context.Requests
