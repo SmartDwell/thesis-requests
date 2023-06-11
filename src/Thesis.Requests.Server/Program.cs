@@ -23,6 +23,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql(connectionString));
 
 var app = builder.BuildWebApplication();
+
 using var scope = app.Services.CreateScope();
 RunRabbitService(scope);
 

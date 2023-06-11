@@ -376,7 +376,7 @@ public class RequestsController : ControllerBase
     /// Получить список заявок, которые похожи на переданную строку поиска
     /// </summary>
     /// <param name="search">Строка поиска</param>
-    [HttpGet]
+    [HttpGet("similars")]
     public async Task<IActionResult> GetSimilars([FromQuery] string search)
     {
         var similars = await _context.Requests
