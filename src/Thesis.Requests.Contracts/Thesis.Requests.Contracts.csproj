@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <LangVersion>11.0</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <DocumentationFile>bin\Debug\net7.0\Thesis.Requests.Contracts.xml</DocumentationFile>
+      <DocumentationFile>bin\Debug\net8.0\Thesis.Requests.Contracts.xml</DocumentationFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <DocumentationFile>bin\Release\net7.0\Thesis.Requests.Contracts.xml</DocumentationFile>
+      <DocumentationFile>bin\Release\net8.0\Thesis.Requests.Contracts.xml</DocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

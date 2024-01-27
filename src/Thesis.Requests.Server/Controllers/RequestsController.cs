@@ -14,9 +14,9 @@ namespace Thesis.Requests.Server.Controllers;
 /// <summary>
 /// Контроллер для работы с заявками жильцов
 /// </summary>
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize]
 public class RequestsController : ControllerBase
 {
     private const double MinimalSearchScore = 0.6;
