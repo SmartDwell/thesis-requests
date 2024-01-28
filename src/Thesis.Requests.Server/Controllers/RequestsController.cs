@@ -14,9 +14,9 @@ namespace Thesis.Requests.Server.Controllers;
 /// <summary>
 /// Контроллер для работы с заявками жильцов
 /// </summary>
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class RequestsController : ControllerBase
 {
     private const double MinimalSearchScore = 0.6;
@@ -65,12 +65,52 @@ public class RequestsController : ControllerBase
                 Created = request.Created,
                 IncidentPointId = request.IncidentPointId,
                 IncidentPointFullName = request.IncidentPointFullName,
+                IsEdited = request.IsEdited,
                 CurrentState = request.CurrentState,
             }).ToListAsync();
         
         return Ok(state is null 
             ? requests 
             : requests.Where(request => request.CurrentState == state));
+    }
+    
+    /// <summary>
+    /// Получить заявку по идентификатору
+    /// </summary>
+    /// <param name="requestId">Идентификатор заявки</param>
+    /// <response code="200">Заявка</response>
+    /// <response code="401">Токен доступа истек</response>
+    /// <response code="404">Заявка не найдена</response>
+    /// <response code="500">Ошибка сервера</response>
+    [HttpGet("{requestId:guid}/details")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<RequestDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetRequestDetails([FromRoute] Guid requestId)
+    {
+        var request = await _context.Requests
+            .Include(request => request.Statuses)
+            .FirstOrDefaultAsync(request => request.Id == requestId);
+            
+        if (request is null)
+            return NotFound("Заявка не найдена");
+
+        var requestDto = new RequestDto
+        {
+            Id = request.Id,
+            Number = request.Number,
+            Title = request.Title,
+            Description = request.Description,
+            Images = request.Images,
+            Created = request.Created,
+            IncidentPointId = request.IncidentPointId,
+            IncidentPointFullName = request.IncidentPointFullName,
+            IsEdited = request.IsEdited,
+            CurrentState = request.CurrentState,
+        };
+        
+        return Ok(requestDto);
     }
     
     /// <summary>
@@ -99,6 +139,7 @@ public class RequestsController : ControllerBase
                 Created = request.Created,
                 IncidentPointId = request.IncidentPointId,
                 IncidentPointFullName = request.IncidentPointFullName,
+                IsEdited = request.IsEdited,
                 CurrentState = request.CurrentState,
             }).ToListAsync();
 
@@ -133,6 +174,7 @@ public class RequestsController : ControllerBase
             Title = requestAddDto.Title,
             Description = requestAddDto.Description,
             Images = requestAddDto.Images,
+            Created = DateTime.UtcNow,
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
             CreatorContact = $"{creatorInfo.Email}, {creatorInfo.Phone}",
@@ -149,7 +191,7 @@ public class RequestsController : ControllerBase
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
         };
-        
+
         await _context.Requests.AddAsync(request);
         await _context.RequestStatuses.AddAsync(requestNew);
         await _context.SaveChangesAsync();
@@ -168,7 +210,7 @@ public class RequestsController : ControllerBase
     /// <response code="404">Заявка не найдена</response>
     /// <response code="500">Ошибка сервера</response>
     [HttpPatch("{requestId:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RequestDto))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -180,6 +222,7 @@ public class RequestsController : ControllerBase
         var request = await _context.Requests
             .Include(item => item.Statuses)
             .FirstOrDefaultAsync(item => item.Id == requestId);
+        
         if (request is null)
             return NotFound();
 
@@ -260,6 +303,7 @@ public class RequestsController : ControllerBase
             Images = commentAddDto.Images,
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
+            Created = DateTime.UtcNow
         };
 
         await _context.RequestComments.AddAsync(comment);
@@ -289,7 +333,7 @@ public class RequestsController : ControllerBase
             .Select(status => new RequestStatusDto
             {
                 State = status.State,
-                Comment = status.Comment,
+                Comment = status.Comment ?? string.Empty,
                 Created = status.Created,
             }).ToListAsync();
         
@@ -348,6 +392,7 @@ public class RequestsController : ControllerBase
             Comment = requestStatusAddDto.Comment,
             CreatorId = creatorInfo.GuidId,
             CreatorName = creatorInfo.FullName,
+            Created = DateTime.UtcNow
         };
 
         await _context.RequestStatuses.AddAsync(status);
@@ -363,7 +408,13 @@ public class RequestsController : ControllerBase
     /// Получить список заявок, которые похожи на переданную строку поиска
     /// </summary>
     /// <param name="search">Строка поиска</param>
-    [HttpGet]
+    /// <response code="200">Список заявок, которые похожи на переданную строку поиска</response>
+    /// <response code="401">Токен доступа истек</response>
+    /// <response code="500">Ошибка сервера</response>
+    [HttpGet("similars")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<SearchResultDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetSimilars([FromQuery] string search)
     {
         var similars = await _context.Requests
@@ -371,13 +422,112 @@ public class RequestsController : ControllerBase
             {
                 Id = req.Id,
                 Name = $"{req.Title} {req.Description}",
-            })
+            }).ToListAsync();
+
+        var filtered = similars
             .OrderByDescending(dto => dto.Score(search))
-            .Where(dto => dto.Score(search) > MinimalSearchScore)
-            .Take(3)
-            .ToListAsync();
+            //.Where(dto => dto.Score(search) > MinimalSearchScore)
+            .Take(3);
+
+        return Ok(filtered);
+    }
+
+    #endregion
+
+    #region Assets
+
+    /// <summary>
+    /// Получить список заявок активов
+    /// </summary>
+    /// <returns></returns>
+    [AllowAnonymous]
+    [HttpGet("assets")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Dictionary<Guid, List<RequestDto>>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetRequestsByAssetId()
+    {
+        var requests = await _context.Requests
+            .Include(request => request.Statuses)
+            .Select(request => new RequestDto
+            {
+                Id = request.Id,
+                Number = request.Number,
+                Title = request.Title,
+                Description = request.Description,
+                Images = request.Images,
+                Created = request.Created,
+                IncidentPointId = request.IncidentPointId,
+                IncidentPointFullName = request.IncidentPointFullName,
+                IsEdited = request.IsEdited,
+                CurrentState = request.CurrentState,
+            })
+            .GroupBy(dto => dto.IncidentPointId)
+            .ToDictionaryAsync(dtos => dtos.Key, dtos => dtos.ToList());
         
-        return Ok(similars);
+        return Ok(requests);
+    }
+    
+    /// <summary>
+    /// Получить список заявок актива по его идентификатору
+    /// </summary>
+    /// <param name="assetId">Идентификатор актива</param>
+    [AllowAnonymous]
+    [HttpGet("assets/{assetId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<RequestDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAssetRequests([FromRoute] Guid assetId)
+    {
+        var requests = await _context.Requests
+            .Include(request => request.Statuses)
+            .Where(request => request.IncidentPointId == assetId)
+            .Select(request => new RequestDto
+            {
+                Id = request.Id,
+                Number = request.Number,
+                Title = request.Title,
+                Description = request.Description,
+                Images = request.Images,
+                Created = request.Created,
+                IncidentPointId = request.IncidentPointId,
+                IncidentPointFullName = request.IncidentPointFullName,
+                IsEdited = request.IsEdited,
+                CurrentState = request.CurrentState,
+            }).ToListAsync();
+        
+        return Ok(requests);
+    }
+    
+    /// <summary>
+    /// Получить список заявок актива по его имени
+    /// </summary>
+    /// <param name="name">Имя актива</param>
+    [AllowAnonymous]
+    [HttpGet("assets/{name}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<RequestDto>))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAssetRequestsByName([FromRoute] string name)
+    {
+        var requests = await _context.Requests
+            .Include(request => request.Statuses)
+            .Where(request => request.IncidentPointFullName.ToLower().Contains(name.ToLower()))
+            .Select(request => new RequestDto
+            {
+                Id = request.Id,
+                Number = request.Number,
+                Title = request.Title,
+                Description = request.Description,
+                Images = request.Images,
+                Created = request.Created,
+                IncidentPointId = request.IncidentPointId,
+                IncidentPointFullName = request.IncidentPointFullName,
+                IsEdited = request.IsEdited,
+                CurrentState = request.CurrentState,
+            }).ToListAsync();
+        
+        return Ok(requests);
     }
 
     #endregion

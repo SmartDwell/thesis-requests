@@ -48,6 +48,11 @@ public class RequestDto
     public string IncidentPointFullName { get; set; } = string.Empty;
     
     /// <summary>
+    /// Признак того, что заявка была отредактирована
+    /// </summary>
+    public bool IsEdited { get; set; }
+    
+    /// <summary>
     /// Актуальный статус заявки
     /// </summary>
     public RequestStates CurrentState { get; set; }
